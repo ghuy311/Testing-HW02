@@ -4,7 +4,7 @@
 > Instructions / System Prompt của Gemini (hoặc lưu làm file rule trong project
 > nếu Antigravity hỗ trợ rule-file per-project). Sau đó, mỗi khi bắt đầu 1 feature
 > mới, chỉ cần nhắn: `"Áp dụng skill Domain Testing cho FR-XX: <dán mô tả FR từ
-> README.md + đoạn API liên quan từ api_specification.md>"`.
+> eshop-spec.md + đoạn API liên quan từ api_specification.md>"`.
 
 > **Cấu trúc project (agent PHẢI biết để đọc/ghi đúng file):**
 > ```
