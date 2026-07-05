@@ -103,3 +103,19 @@ Nguyên nhân chung: sự phức tạp của việc duy trì tính nhất quán 
 
 > Trong quá trình làm FR-06, AI hỗ trợ rất tốt trong giai đoạn đầu khi cần liệt kê các phân hoạch tương đương chuẩn cho các biến số. Giúp tiết kiệm thời gian đáng kể so với việc tự làm thủ công ngay từ đầu. Bên cạnh đó có những sai sót đáng lưu ý như : AI không bảo đảm nhất quán tuyệt đối giữa các mục trong bài làm hoặc cùng tài liệu. Dù đã đúng khi gắn nhãn "spec gap" cho biên trên của quantity ở phần Boundary Value Analysis, AI lại quay về giả định tồn kho tự bịa ("vượt quá hàng tồn kho") khi viết Expected Result cho Test Case Table — một business rule không hề tồn tại trong spec. 
 ==> Chính vì thế quan trọng là bản thân phải chủ động đọc lại toàn bộ tài liệu và kiểm tra tính nhất quán, đúng đắn của từng phần riêng lẻ. Ngoài ra AI cũng không thể thay thế con người trong việc thực thi thật. Do đó bản thân người dùng phải là người cuối cùng kiểm tra và quyết định tính đúng đắn.
+
+## FR-07: Giỏ hàng (Shopping Cart)
+
+### 1. Input Variables
+
+| Biến | Nguồn | Ràng buộc theo spec | Ghi chú (nếu phải tự suy luận) |
+|---|---|---|---|
+| `Authorization` (Token) | Header (`GET /api/cart`) | Yêu cầu phải có Token hợp lệ | (Suy luận) JWT token hợp lệ của user đã đăng nhập. |
+> **Phát hiện ban đầu:** Business spec FR-07 yêu cầu "Số lượng (có nút +/- để chỉnh)", nhưng qua kiểm tra UI thực tế, trang Giỏ hàng chỉ có nút Xóa, không có nút +/-. Ghi nhận là **BUG-07-01** (xem `bug_report.md`). <br>
+> **Kết luận sau thực nghiệm :** Ban đầu dự kiến có thêm biến `id` (sản phẩm cần xóa) để test EC/BVA cho thao tác Xóa. Tuy nhiên, qua kiểm tra thực tế bằng DevTools (Network tab) và Postman, em xác nhận:
+> - Nút "Thêm vào giỏ hàng" (FR-06) **không gọi** `POST /api/cart`
+> - Nút "Xóa sản phẩm" (FR-07) **không gọi** bất kỳ API nào
+> - `localStorage` chỉ chứa `token`, không lưu dữ liệu giỏ hàng
+> - `GET /api/cart` qua Postman luôn trả về `[]` dù UI hiển thị sản phẩm
+>
+> → Toàn bộ tính năng giỏ hàng hiện tại chỉ tồn tại trong React state tạm thời, không có bất kỳ tích hợp Backend nào. Do đó, **không thể thiết kế EC/BVA cho biến `id` (xóa sản phẩm) ở tầng API** vì không có endpoint nào để test. Đây được ghi nhận là **BUG-07-01 (Critical)** — xem `bug_report.md`.
