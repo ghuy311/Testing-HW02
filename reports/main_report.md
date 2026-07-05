@@ -154,3 +154,20 @@ Nguyên nhân chung: sự phức tạp của việc duy trì tính nhất quán 
 | TC_07_FUNC_05 | Nút Xóa sản phẩm | Bấm nút Xóa | Hiện dialog xác nhận trước khi xóa thật | Không có dialog box xác nhận trước khi xoá | Failed |
 | TC_07_FUNC_06 | Giỏ hàng trống | Xóa hết sản phẩm hoặc chưa thêm gì | Hiển thị giỏ hàng trống, có nút chuyển sang danh sách sản phẩm |Hiển thị giỏ hàng trống, có nút chuyển sang danh sách sản phẩm | Passed |
 | TC_07_FUNC_07 | Nhãn "Tổng cộng" | Kiểm tra giao diện giỏ hàng | Nhãn "Tổng cộng" hiển thị rõ ràng | Nhãn "Tổng cộng" không xuất hiện | Failed |
+
+### 6. AI Gap Analysis
+
+Trong quá trình áp dụng Domain Testing/BVA cho FR-07 với sự hỗ trợ của AI (Gemini, Antigravity), chúng tôi ghi nhận các khoảng trống (gap) sau:
+
+1. **AI không thể tự phát hiện bug tích hợp giữa Frontend và Backend:** Bug nghiêm trọng nhất của FR-07 (giỏ hàng hoàn toàn không gọi API, chỉ tồn tại ở React state) không thể phát hiện được chỉ qua phân tích spec. Việc phát hiện bug này đòi hỏi em phải dùng DevTools (Network tab) quan sát hành vi thực tế, một thao tác nằm ngoài khả năng của AI khi không có quyền truy cập trình duyệt đang chạy.
+
+2. **AI ban đầu thiết kế EC/BVA cho 1 tính năng không tồn tại (biến `id` xóa sản phẩm):** Do `api_specification.md` không tài liệu hóa endpoint xóa giỏ hàng, AI đã đúng khi gắn nhãn ban đầu là "spec gap" và tự suy luận 1 bộ EC hợp lý (ID hợp lệ, không tồn tại, sai kiểu...). Tuy nhiên, sau khi thực nghiệm, toàn bộ bộ EC này trở nên vô nghĩa vì không có endpoint thật để test — đây không phải lỗi của AI (nó không thể biết trước điều này nếu không có input từ em), nhưng cho thấy giới hạn cố hữu: **EC/BVA thiết kế trên giấy luôn cần được xác thực lại bằng thực nghiệm trước khi coi là hoàn chỉnh**, đặc biệt với các phần spec không tài liệu hóa rõ ràng.
+
+3. **AI không tự liên kết bug giữa các feature (cross-feature blind spot):** Vì mỗi feature được xử lý trong 1 mỗi lần làm việc riêng biệt theo đúng cấu trúc đề bài, AI không tự nhận ra rằng lỗi thiếu validate `quantity` ở FR-06 (BUG-06-02) sẽ gây hậu quả trực tiếp lên phần hiển thị tổng tiền ở FR-07 (BUG-07-06 — NaN/số âm). Việc phát hiện mối liên hệ này hoàn toàn đến từ việc em chủ động thử luồng end-to-end (từ trang sản phẩm sang trang giỏ hàng), không phải từ AI tự suy luận.
+
+4. **AI không tự đối chiếu business spec với hành vi UI thực tế:** Business spec FR-07 mô tả rõ "Số lượng (có nút +/- để chỉnh)", nhưng vì AI chỉ làm việc dựa trên văn bản spec (không tự mở trình duyệt kiểm tra), nó không thể tự phát hiện rằng tính năng này không được triển khai trên UI thật (BUG-07-01) cho đến khi  báo lại.
+
+Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *thiết kế lý thuyết* (dựa trên văn bản spec), nhưng hoàn toàn phụ thuộc vào bản thân con người review để *xác thực bằng thực nghiệm* — đặc biệt với các loại lỗi chỉ lộ ra khi quan sát hành vi runtime thực tế (network requests, tương tác giữa các trang, ...).
+
+### AI Critique
+> Trong quá trình ban đầu AI rất nhanh chóng trong việc xác định input variables. Nhưng với nội dung đã đề cập ở `6. AI Gap Analysis` trên em nhận ra AI rất nhanh xác định biến và chia miền, tạo ra bảng test case nhưng những gì AI có thể làm đó là dựa vào spec đã cho chứ không thể biết thực tế mà phần mềm chưa có làm theo spec. Cần phải 1 bước em phải đọc lại những gì AI gen ra và đối chiếu lại với thực tế sau đó check lại. Đảm bảo rằng tài liệu phải chính xác, phù hợp với thực tế chứ không tin tưởng 100% AI vì AI có thể ảo giác hoặc suy nghĩ quá mức.
