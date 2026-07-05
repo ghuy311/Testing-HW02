@@ -182,3 +182,31 @@ Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *
 | `name` | Body field (`POST /api/categories`, `PUT /api/categories/:id`) | Tên danh mục là bắt buộc, không được để trống | (Suy luận) Phải là chuỗi (string). Thường PUT cũng nhận tham số này để đổi tên DM. |
 | `id` | Path param (`PUT /api/categories/:id`, `DELETE /api/categories/:id`) | Không có ràng buộc tường minh | (Suy luận) ID phải tồn tại trong CSDL để có thể cập nhật hoặc xóa. |
 
+### 2. Equivalence Partitioning
+
+**Biến `Authorization` (Token):**
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| Token hợp lệ (Admin) | JWT token của người dùng có `role = 'admin'` | Bearer admin_token | Valid | "Yêu cầu Token hợp lệ", "role = 'admin' trong Token" |
+| Token hợp lệ (User) | JWT token của người dùng thường (`role = 'user'`) | Bearer user_token | Invalid | "Chỉ dành cho tài khoản có role = 'admin'" |
+| Thiếu Token | Không gửi Header Authorization | (Rỗng) | Invalid | "Yêu cầu Token JWT hợp lệ" |
+| Sai format Token | Chuỗi không theo chuẩn JWT | Bearer abcxyz | Invalid | (Suy luận) Hệ thống cần Token hợp lệ |
+
+**Biến `name`:**
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| Tên hợp lệ | Chuỗi ký tự alphabet  | "Đồ điện tử" | Valid | "Tên danh mục là bắt buộc" |
+| Chuỗi rỗng | Chuỗi không chứa ký tự nào | "" | Invalid | "không được để trống" |
+| Chỉ toàn khoảng trắng | Chuỗi chỉ chứa dấu cách | "   " | Invalid | (Suy luận) Khoảng trắng cũng tương đương với để trống |
+| Sai kiểu dữ liệu | Gửi kiểu số, boolean hoặc object | 123 | Invalid | (Suy luận) Phải là kiểu chuỗi |
+| Null / Thiếu field | Không gửi trường name hoặc gửi null | null | Invalid | "Tên danh mục là bắt buộc" |
+
+**Biến `id`:**
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| ID hợp lệ | ID của một danh mục đang tồn tại trong hệ thống | 1 | Valid | Cập nhật hoặc Xóa danh mục tương ứng |
+| ID không tồn tại | Số nguyên dương không có trong DB | 9999 | Invalid | (Suy luận) Lỗi 404 Not Found do không tìm thấy danh mục |
+| Sai kiểu dữ liệu | Gửi ID dưới dạng chuỗi/boolean | "abc" | Invalid | (Suy luận) ID thường là số nguyên |
