@@ -130,3 +130,27 @@ Nguyên nhân chung: sự phức tạp của việc duy trì tính nhất quán 
 | Thiếu Token | Không gửi Header Authorization | (Rỗng) | Invalid | "Yêu cầu Header" |
 | Sai format Token | Chuỗi ngẫu nhiên, không theo chuẩn JWT | Bearer abc123xyz | Invalid | (Suy luận) Hệ thống cần JWT đúng định dạng để giải mã |
 | Token hết hạn | JWT token đã quá hạn sử dụng | Bearer (token cũ) | Invalid | (Suy luận) Bảo mật cơ bản của JWT — **Not executable**, cần thời gian chờ token hết hạn thật |
+
+### 3. Boundary Value Analysis
+
+*Không áp dụng* — biến `Authorization` là chuỗi token, không thuộc domain có thứ tự/số học nên không có khái niệm "biên" theo đúng nghĩa BVA.
+
+### 4. Test Case Table
+
+| Test ID | API | Input | Expected Result | Actual | Pass/Fail |
+|---|---|---|---|---|---|
+| TC-FR07-01 | `GET /api/cart` | Token hợp lệ | Trả về danh sách sản phẩm trong giỏ (200 OK) | Status 200 OK | Passed |
+| TC-FR07-02 | `GET /api/cart` | Không có Header Authorization | 401 Unauthorized | Status 401, "error": "Unauthorized" | Passed |
+| TC-FR07-03 | `GET /api/cart` | Token sai format (`Bearer abc123xyz`) | 401 Unauthorized | Status 403, "error": "Forbidden" | Failed |
+| TC-FR07-04 | `GET /api/cart` | Token hết hạn | 401 Unauthorized | Not executable | N/A |
+### 5. Functional/Event-based Testing (Ngoài phạm vi Domain Testing)
+
+| Test ID | Đối tượng | Hành động | Expected Result | Actual | Pass/Fail |
+|---|---|---|---|---|---|
+| TC_07_FUNC_01 | Nút "Thêm vào giỏ hàng" | Thêm 1 sản phẩm | UI cập nhật giỏ hàng VÀ gọi `POST /api/cart` | UI cập nhật nhưng KHÔNG gọi API nào | Failed |
+| TC_07_FUNC_02 | Nút "Xóa sản phẩm" | Xóa 1 sản phẩm trong giỏ | UI xóa sản phẩm VÀ gọi API xóa tương ứng | UI xóa nhưng KHÔNG gọi API nào | Failed |
+| TC_07_FUNC_03 | Thao tác F5/reload trang giỏ hàng | Reload sau khi đã thêm sản phẩm | Giỏ hàng vẫn giữ nguyên dữ liệu (do đã lưu Backend) | Giỏ hàng bị mất trắng sau F5 | Failed |
+| TC_07_FUNC_04 | Thêm 2 lần cùng 1 sản phẩm | Thêm sản phẩm A, sau đó thêm lại sản phẩm A lần nữa | Tăng số lượng dòng cũ, không tạo dòng mới | Tạo thành 2 dòng mới, không cộng dồn | Failed |
+| TC_07_FUNC_05 | Nút Xóa sản phẩm | Bấm nút Xóa | Hiện dialog xác nhận trước khi xóa thật | Không có dialog box xác nhận trước khi xoá | Failed |
+| TC_07_FUNC_06 | Giỏ hàng trống | Xóa hết sản phẩm hoặc chưa thêm gì | Hiển thị giỏ hàng trống, có nút chuyển sang danh sách sản phẩm |Hiển thị giỏ hàng trống, có nút chuyển sang danh sách sản phẩm | Passed |
+| TC_07_FUNC_07 | Nhãn "Tổng cộng" | Kiểm tra giao diện giỏ hàng | Nhãn "Tổng cộng" hiển thị rõ ràng | Nhãn "Tổng cộng" không xuất hiện | Failed |
