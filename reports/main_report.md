@@ -171,3 +171,14 @@ Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *
 
 ### AI Critique
 > Trong quá trình ban đầu AI rất nhanh chóng trong việc xác định input variables. Nhưng với nội dung đã đề cập ở `6. AI Gap Analysis` trên em nhận ra AI rất nhanh xác định biến và chia miền, tạo ra bảng test case nhưng những gì AI có thể làm đó là dựa vào spec đã cho chứ không thể biết thực tế mà phần mềm chưa có làm theo spec. Cần phải 1 bước em phải đọc lại những gì AI gen ra và đối chiếu lại với thực tế sau đó check lại. Đảm bảo rằng tài liệu phải chính xác, phù hợp với thực tế chứ không tin tưởng 100% AI vì AI có thể ảo giác hoặc suy nghĩ quá mức.
+
+## FR-14: Quản lý Danh mục (Category CRUD)
+
+### 1. Input Variables
+
+| Biến | Nguồn | Ràng buộc theo spec | Ghi chú (nếu phải tự suy luận) |
+|---|---|---|---|
+| `Authorization` (Token) | Header (tất cả API danh mục) | Yêu cầu phải có Token hợp lệ và `role = 'admin'` (theo FR-12) | (Suy luận) Nếu là user thường (role='user') sẽ bị từ chối truy cập (403). |
+| `name` | Body field (`POST /api/categories`, `PUT /api/categories/:id`) | Tên danh mục là bắt buộc, không được để trống | (Suy luận) Phải là chuỗi (string). Thường PUT cũng nhận tham số này để đổi tên DM. |
+| `id` | Path param (`PUT /api/categories/:id`, `DELETE /api/categories/:id`) | Không có ràng buộc tường minh | (Suy luận) ID phải tồn tại trong CSDL để có thể cập nhật hoặc xóa. |
+
