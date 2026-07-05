@@ -119,3 +119,14 @@ Nguyên nhân chung: sự phức tạp của việc duy trì tính nhất quán 
 > - `GET /api/cart` qua Postman luôn trả về `[]` dù UI hiển thị sản phẩm
 >
 > → Toàn bộ tính năng giỏ hàng hiện tại chỉ tồn tại trong React state tạm thời, không có bất kỳ tích hợp Backend nào. Do đó, **không thể thiết kế EC/BVA cho biến `id` (xóa sản phẩm) ở tầng API** vì không có endpoint nào để test. Đây được ghi nhận là **BUG-07-01 (Critical)** — xem `bug_report.md`.
+
+### 2. Equivalence Partitioning
+
+**Biến `Authorization` (Token):**
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| Token hợp lệ | JWT token của người dùng đang đăng nhập | Bearer eyJhbG... | Valid | "Yêu cầu Header: `Authorization: Bearer <token>`" |
+| Thiếu Token | Không gửi Header Authorization | (Rỗng) | Invalid | "Yêu cầu Header" |
+| Sai format Token | Chuỗi ngẫu nhiên, không theo chuẩn JWT | Bearer abc123xyz | Invalid | (Suy luận) Hệ thống cần JWT đúng định dạng để giải mã |
+| Token hết hạn | JWT token đã quá hạn sử dụng | Bearer (token cũ) | Invalid | (Suy luận) Bảo mật cơ bản của JWT — **Not executable**, cần thời gian chờ token hết hạn thật |
