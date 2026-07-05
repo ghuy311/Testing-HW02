@@ -210,3 +210,30 @@ Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *
 | ID hợp lệ | ID của một danh mục đang tồn tại trong hệ thống | 1 | Valid | Cập nhật hoặc Xóa danh mục tương ứng |
 | ID không tồn tại | Số nguyên dương không có trong DB | 9999 | Invalid | (Suy luận) Lỗi 404 Not Found do không tìm thấy danh mục |
 | Sai kiểu dữ liệu | Gửi ID dưới dạng chuỗi/boolean | "abc" | Invalid | (Suy luận) ID thường là số nguyên |
+
+### 3. Boundary Value Analysis
+
+**Biến `Authorization` (Token):**
+Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có thứ tự.
+
+**Biến `name` (Độ dài chuỗi):**
+*(Lưu ý: Spec chỉ quy định "không được để trống", tức là Min Length = 1. Không quy định Max Length, đây là một Spec Gap. Tôi giả định Max = 255 theo chuẩn cột varchar DB).*
+
+| Test | Giá trị (Độ dài chuỗi) | Vị trí biên |
+|---|---|---|
+| Min - 1 | 0 ký tự (`""`) | min - 1 (rỗng) |
+| Min | 1 ký tự (`"A"`) | min |
+| Min + 1 | 2 ký tự (`"AB"`) | min + 1 |
+| Max (Spec gap) | 255 ký tự | (Suy luận) Biên trên phổ biến của cột varchar |
+| Max + 1 | 256 ký tự | (Suy luận) Tràn độ dài cột DB mặc định |
+
+**Biến `id` (Tham số đường dẫn):**
+*(Tương tự các tính năng khác, Min là 1, không có Max rõ ràng trong tài liệu)* do đó giả định Max ở đây là 2147483647.
+
+| Test | Giá trị | Vị trí biên |
+|---|---|---|
+| Min - 1 | 0 | min - 1 |
+| Min | 1 | min |
+| Min + 1 | 2 | min + 1 |
+| Max (Spec gap) | 2147483647 | (Suy luận) Giới hạn số nguyên 32-bit |
+| Max + 1 | 2147483648 | (Suy luận) Vượt giới hạn số nguyên |
