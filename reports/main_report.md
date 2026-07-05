@@ -237,3 +237,28 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 | Min + 1 | 2 | min + 1 |
 | Max (Spec gap) | 2147483647 | (Suy luận) Giới hạn số nguyên 32-bit |
 | Max + 1 | 2147483648 | (Suy luận) Vượt giới hạn số nguyên |
+
+### 4. Test Case Table
+
+| Test ID | API | Input (Tham số / Body / Header) | Expected Result (theo spec / suy luận) | Actual | Pass/Fail |
+|---|---|---|---|---|---|
+| TC-FR14-01 | `POST /api/categories` | Token User, `name` = "A" (Biên Min = 1) | Không có quyền truy cập (403 Forbidden) | ạo thành công nhưng Status 200 | Failed |
+| TC-FR14-02 | `POST /api/categories` | Không có token, `name` = "A" (Biên Min = 1) | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
+| TC-FR14-03 | `POST /api/categories` |Token sai định dạng (abcxyz), `name` = "A" (Biên Min = 1) | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
+| TC-FR14-04 | `POST /api/categories` | Token Admin, `name` = "A" (Biên Min = 1) | Thêm thành công (201 Created) | Status : 201,  "message": "Category created", id": 4 | Failed |
+| TC-FR14-05 | `POST /api/categories` | Token Admin, `name` dài 255 ký tự (Biên Max) | Thêm thành công (201 Created) | Tạo thành công nhưng Status 200 | Failed |
+| TC-FR14-06 | `POST /api/categories` | Token Admin, `name` = `""` (Rỗng - Dưới Min) | Lỗi Validation (Tên không được để trống) |Tạo thành công | Failed |
+| TC-FR14-07 | `POST /api/categories` | Token Admin, `name` = `"   "` (Khoảng trắng) | Lỗi Validation (Không để trống / không hợp lệ) |Tạo thành công | Failed |
+| TC-FR14-08 | `POST /api/categories` | Token Admin, không gửi trường `name` / `null` | Lỗi Validation (Trường name là bắt buộc) |Tạo thành công  | Failed |
+| TC-FR14-09 | `POST /api/categories` | Token Admin, `name` dài 256 ký tự (Vượt Max) | Lỗi Validation (Vượt quá độ dài tối đa) | Tạo thành công | Failed (Giả định Max là 255) |
+| TC-FR14-10 | `PUT /api/categories` | Token User, `id` tồn tại, `name` hợp lệ | Không có quyền truy cập (403 Forbidden) | Status 200 message : "Category updated" | Failed |
+| TC-FR14-11 | `PUT /api/categories` | Không có token, `id` tồn tại, `name` hợp lệ | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
+| TC-FR14-12 | `PUT /api/categories` |Token sai định dạng (abcxyz), `id` tồn tại, `name` hợp lệ | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
+| TC-FR14-13 | `PUT /api/categories/:id` | Token Admin, `id` tồn tại, `name` hợp lệ | Cập nhật thành công (200 OK) |Status 200 message : "Category updated"  | Passed |
+| TC-FR14-14 | `PUT /api/categories/:id` | Token Admin, `id` = 9999 (Không tồn tại) | Lỗi 404 Not Found (Không tìm thấy danh mục) |Status 200 message : "Category updated" | Failed |
+| TC-FR14-15 | `DELETE /api/categories` | Token User, `id` tồn tại | Không có quyền truy cập (403 Forbidden) | Status 200 message : "Category deleted" | Failed |
+| TC-FR14-16 | `DELETE /api/categories` | Không có token, `id` tồn tại | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
+| TC-FR14-17 | `DELETE /api/categories` |Token sai định dạng (abcxyz), `id` tồn tại | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
+| TC-FR14-18 | `DELETE /api/categories/:id` | Token Admin, `id` tồn tại | Xóa thành công (200 OK / 204 No Content) |Status 200, message : "Category deleted" | Passed |
+| TC-FR14-19 | `DELETE /api/categories/:id` | Token Admin, `id` = 0 (Dưới biên Min) | Lỗi ID không hợp lệ (400 Bad Request / 404) |Status 200, message : "Category deleted" | Failed |
+| TC-FR14-20 | `DELETE /api/categories/:id` | Token Admin, `id` = 2147483648 (Tràn Max) | Lỗi vượt giới hạn kiểu số nguyên |Status 200, message : "Category deleted" | Failed |
