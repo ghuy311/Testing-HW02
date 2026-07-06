@@ -175,6 +175,7 @@ Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *
 ## FR-14: Quản lý Danh mục (Category CRUD)
 
 ### 1. Input Variables
+> Phát hiện ban đầu: Business spec FR-14 (eshop-spec.md) chỉ mô tả 3 hành vi: "Admin có thể Thêm / Xem / Xóa danh mục." — không đề cập chức năng Sửa (Update). Tuy nhiên api_specification.md (mục 3.4) có tài liệu hóa endpoint PUT /api/categories/:id. Do đó, các test case liên quan đến PUT (TC-FR14-10 → TC-FR14-14) được xây dựng dựa trên tài liệu API, không phải dựa trên yêu cầu nghiệp vụ tường minh của FR-14. Việc kiểm soát quyền truy cập (role=admin) cho PUT vẫn có căn cứ hợp lệ vì FR-12 liệt kê rõ PUT /api/categories thuộc nhóm API cần quyền Admin. Ghi nhận là ghi chú spec, không phải bug.
 
 | Biến | Nguồn | Ràng buộc theo spec | Ghi chú (nếu phải tự suy luận) |
 |---|---|---|---|
@@ -217,7 +218,8 @@ Nguyên nhân chung của các gap trên: AI hỗ trợ tốt ở giai đoạn *
 Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có thứ tự.
 
 **Biến `name` (Độ dài chuỗi):**
-*(Lưu ý: Spec chỉ quy định "không được để trống", tức là Min Length = 1. Không quy định Max Length, đây là một Spec Gap. Tôi giả định Max = 255 theo chuẩn cột varchar DB).*
+> Biến name (độ dài chuỗi):
+(Spec chỉ quy định Min Length = 1 ("không được để trống"). Không quy định Max Length — đây là spec gap. Giả định Max = 255 theo chuẩn cột varchar DB, không phải trích dẫn từ spec.)
 
 | Test | Giá trị (Độ dài chuỗi) | Vị trí biên |
 |---|---|---|
@@ -225,7 +227,7 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 | Min | 1 ký tự (`"A"`) | min |
 | Min + 1 | 2 ký tự (`"AB"`) | min + 1 |
 | Max (Spec gap) | 255 ký tự | (Suy luận) Biên trên phổ biến của cột varchar |
-| Max + 1 | 256 ký tự | (Suy luận) Tràn độ dài cột DB mặc định |
+| Max + 1 (Spec gap — giả định)| 256 ký tự | (Suy luận) Tràn độ dài cột DB mặc định |
 
 **Biến `id` (Tham số đường dẫn):**
 *(Tương tự các tính năng khác, Min là 1, không có Max rõ ràng trong tài liệu)* do đó giả định Max ở đây là 2147483647.
@@ -240,25 +242,34 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 
 ### 4. Test Case Table
 
-| Test ID | API | Input (Tham số / Body / Header) | Expected Result (theo spec / suy luận) | Actual | Pass/Fail |
-|---|---|---|---|---|---|
-| TC-FR14-01 | `POST /api/categories` | Token User, `name` = "A" (Biên Min = 1) | Không có quyền truy cập (403 Forbidden) | ạo thành công nhưng Status 200 | Failed |
-| TC-FR14-02 | `POST /api/categories` | Không có token, `name` = "A" (Biên Min = 1) | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
-| TC-FR14-03 | `POST /api/categories` |Token sai định dạng (abcxyz), `name` = "A" (Biên Min = 1) | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
-| TC-FR14-04 | `POST /api/categories` | Token Admin, `name` = "A" (Biên Min = 1) | Thêm thành công (201 Created) | Status : 201,  "message": "Category created", id": 4 | Failed |
-| TC-FR14-05 | `POST /api/categories` | Token Admin, `name` dài 255 ký tự (Biên Max) | Thêm thành công (201 Created) | Tạo thành công nhưng Status 200 | Failed |
-| TC-FR14-06 | `POST /api/categories` | Token Admin, `name` = `""` (Rỗng - Dưới Min) | Lỗi Validation (Tên không được để trống) |Tạo thành công | Failed |
-| TC-FR14-07 | `POST /api/categories` | Token Admin, `name` = `"   "` (Khoảng trắng) | Lỗi Validation (Không để trống / không hợp lệ) |Tạo thành công | Failed |
-| TC-FR14-08 | `POST /api/categories` | Token Admin, không gửi trường `name` / `null` | Lỗi Validation (Trường name là bắt buộc) |Tạo thành công  | Failed |
-| TC-FR14-09 | `POST /api/categories` | Token Admin, `name` dài 256 ký tự (Vượt Max) | Lỗi Validation (Vượt quá độ dài tối đa) | Tạo thành công | Failed (Giả định Max là 255) |
-| TC-FR14-10 | `PUT /api/categories` | Token User, `id` tồn tại, `name` hợp lệ | Không có quyền truy cập (403 Forbidden) | Status 200 message : "Category updated" | Failed |
-| TC-FR14-11 | `PUT /api/categories` | Không có token, `id` tồn tại, `name` hợp lệ | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
-| TC-FR14-12 | `PUT /api/categories` |Token sai định dạng (abcxyz), `id` tồn tại, `name` hợp lệ | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
-| TC-FR14-13 | `PUT /api/categories/:id` | Token Admin, `id` tồn tại, `name` hợp lệ | Cập nhật thành công (200 OK) |Status 200 message : "Category updated"  | Passed |
-| TC-FR14-14 | `PUT /api/categories/:id` | Token Admin, `id` = 9999 (Không tồn tại) | Lỗi 404 Not Found (Không tìm thấy danh mục) |Status 200 message : "Category updated" | Failed |
-| TC-FR14-15 | `DELETE /api/categories` | Token User, `id` tồn tại | Không có quyền truy cập (403 Forbidden) | Status 200 message : "Category deleted" | Failed |
-| TC-FR14-16 | `DELETE /api/categories` | Không có token, `id` tồn tại | Token không hợp lệ (401 Unauthorized) | Status : 401,  "error": "Unauthorized" | Passed |
-| TC-FR14-17 | `DELETE /api/categories` |Token sai định dạng (abcxyz), `id` tồn tại | Token không hợp lệ (401 Unauthorized) | Status : 403,  "error": "Forbidden" | Failed |
-| TC-FR14-18 | `DELETE /api/categories/:id` | Token Admin, `id` tồn tại | Xóa thành công (200 OK / 204 No Content) |Status 200, message : "Category deleted" | Passed |
-| TC-FR14-19 | `DELETE /api/categories/:id` | Token Admin, `id` = 0 (Dưới biên Min) | Lỗi ID không hợp lệ (400 Bad Request / 404) |Status 200, message : "Category deleted" | Failed |
-| TC-FR14-20 | `DELETE /api/categories/:id` | Token Admin, `id` = 2147483648 (Tràn Max) | Lỗi vượt giới hạn kiểu số nguyên |Status 200, message : "Category deleted" | Failed |
+| Test ID | API | Input | Expected Result (theo spec / suy luận) | Actual | Pass/Fail |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC-FR14-01** | `POST /api/categories` | Token User, name="A" | Không có quyền truy cập — theo FR-12 (mã lỗi cụ thể 403 là suy luận, không phải tường minh) | Tạo thành công, Status 200 | **Failed** |
+| **TC-FR14-02** | `POST /api/categories` | Không có token, name="A" | Thiếu Token — theo FR-12 (mã cụ thể 401 là suy luận) | Status 401, "error": "Unauthorized" | **Passed** |
+| **TC-FR14-03** | `POST /api/categories` | Token sai định dạng, name="A" | Token không hợp lệ bị từ chối — theo FR-12 (mã cụ thể không quy định) | Status 403, "error": "Forbidden" | **Passed** (yêu cầu "bị từ chối" theo FR-12 vẫn được đáp ứng; khác mã lỗi so với TC-FR14-02 chỉ là điểm không nhất quán nội bộ, không phải vi phạm spec tường minh) |
+| **TC-FR14-04** | `POST /api/categories` | Token Admin, name="A" | Thêm thành công — theo FR-14 (mã HTTP cụ thể 201 là suy luận, không có trong spec) | Status 200, "message": "Category created", "id": 4 | **Passed** |
+| **TC-FR14-05** | `POST /api/categories` | Token Admin, name dài 255 ký tự (Biên Max — giả định) | Thêm thành công (mã 201 là suy luận) | Status 200, tạo thành công | **Passed** (yêu cầu tạo thành công vẫn đáp ứng; khác mã HTTP so với suy luận ban đầu, không phải lỗi spec) |
+| **TC-FR14-06** | `POST /api/categories` | Token Admin, name="" (Rỗng) | Lỗi Validation — theo FR-14: "không được để trống" | Tạo thành công | **Failed** |
+| **TC-FR14-07** | `POST /api/categories` | Token Admin, name="   " (khoảng trắng) | Lỗi Validation (Suy luận: khoảng trắng tương đương rỗng, không phải trích dẫn tường minh) | Tạo thành công | **Failed*** (dựa trên suy luận hợp lý, không phải vi phạm câu chữ tường minh của spec) |
+| **TC-FR14-08** | `POST /api/categories` | Token Admin, không gửi name / null | Lỗi Validation — theo FR-14: "Tên danh mục là bắt buộc" | Tạo thành công | **Failed** |
+| **TC-FR14-09** | `POST /api/categories` | Token Admin, name dài 256 ký tự | (Spec gap — không có yêu cầu tường minh về Max Length, giả định 255 là tự đặt ra) | Tạo thành công | **Ghi nhận** — spec gap, không đủ căn cứ chấm Pass/Fail chính thức |
+| **TC-FR14-10** | `PUT /api/categories/:id` | Token User, id tồn tại, name hợp lệ | Không có quyền truy cập — theo FR-12 (mã cụ thể 403 là suy luận) | Status 200, "Category updated" | **Failed** |
+| **TC-FR14-11** | `PUT /api/categories/:id` | Không có token, id tồn tại, name hợp lệ | Thiếu Token — theo FR-12 (mã cụ thể 401 là suy luận) | Status 401, "Unauthorized" | **Passed** |
+| **TC-FR14-12** | `PUT /api/categories/:id` | Token sai định dạng, id tồn tại, name hợp lệ | Token không hợp lệ bị từ chối — theo FR-12 | Status 403, "Forbidden" | **Passed** (tương tự TC-FR14-03, chỉ khác mã lỗi) |
+| **TC-FR14-13** | `PUT /api/categories/:id` | Token Admin, id tồn tại, name hợp lệ | Cập nhật thành công — (căn cứ từ api_specification.md, không phải business spec FR-14) | Status 200, "Category updated" | **Passed** |
+| **TC-FR14-14** | `PUT /api/categories/:id` | Token Admin, id=9999 (không tồn tại) | Hệ thống không nên báo "thành công" cho bản ghi không tồn tại (mã lỗi cụ thể 404 là suy luận, nhưng phản hồi sai lệch là vấn đề thực tế bất kể mã lỗi) | Status 200, "Category updated" | **Failed** |
+| **TC-FR14-15** | `DELETE /api/categories/:id` | Token User, id tồn tại | Không có quyền truy cập — theo FR-12 (mã cụ thể 403 là suy luận) | Status 200, "Category deleted" | **Failed** |
+| **TC-FR14-16** | `DELETE /api/categories/:id` | Không có token, id tồn tại | Thiếu Token — theo FR-12 (mã cụ thể 401 là suy luận) | Status 401, "Unauthorized" | **Passed** |
+| **TC-FR14-17** | `DELETE /api/categories/:id` | Token sai định dạng, id tồn tại | Token không hợp lệ bị từ chối — theo FR-12 | Status 403, "Forbidden" | **Passed** (tương tự TC-FR14-03/12) |
+| **TC-FR14-18** | `DELETE /api/categories/:id` | Token Admin, id tồn tại | Xóa thành công — theo FR-14: "Admin có thể ... Xóa danh mục" (mã HTTP 200/204 là suy luận) | Status 200, "Category deleted" | **Passed** |
+| **TC-FR14-19** | `DELETE /api/categories/:id` | Token Admin, id=0 | Hệ thống không nên báo "thành công" cho ID không hợp lệ (mã lỗi cụ thể 400/404 là suy luận) | Status 200, "Category deleted" | **Failed** |
+| **TC-FR14-20** | `DELETE /api/categories/:id` | Token Admin, id=2147483648 | Hệ thống không nên báo "thành công" cho ID vượt giới hạn số nguyên (mã lỗi cụ thể là suy luận) | Status 200, "Category deleted" | **Failed** |
+
+### 5. Functional/Event-based Testing (Ngoài phạm vi Domain Testing)
+
+| Test ID | Đối tượng | Hành động | Expected Result | Actual | Pass/Fail |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **TC_14_FUNC_01** | Ô nhập "Tên danh mục mới" + nút "Thêm mới" | Để trống ô input, bấm "Thêm mới" | Hệ thống từ chối, hiển thị lỗi "Tên danh mục không được để trống".<br>*(Căn cứ FR-14: "Tên danh mục là bắt buộc, không được để trống.")* | Tạo thành công với tên rỗng — dòng #6, #7, #8 trong ảnh | **Failed** |
+| **TC_14_FUNC_02** | Ô nhập "Tên danh mục mới" + nút "Thêm mới" | Gõ "   ", bấm "Thêm mới" | Bị từ chối tương tự trường hợp rỗng.<br>*(Căn cứ suy luận: Khoảng trắng tương đương rỗng)* | Tạo thành công — dòng #12, #13 | **Failed*** |
+| **TC_14_FUNC_03** | Bảng danh sách danh mục | Tạo danh mục tên rất dài, quan sát hiển thị | Spec không quy định cách UI xử lý chuỗi dài.<br>*(Không có trong spec — hệ quả của spec gap Max Length)* | Chuỗi tràn ra ngoài, không wrap/truncate — dòng #5, #9, #10, #11 | **Ghi nhận** (không chấm Pass/Fail) |
+| **TC_14_FUNC_04** | Bảng danh mục (Khi có 1 dòng có tên danh mục quá dài) | Tìm nút Xóa cho từng dòng | Phải có cách để Admin xóa qua giao diện.<br>*(Căn cứ FR-14: "Admin có thể ... Xóa danh mục.")* | Không có cột/nút thao tác nào | **Failed** |
