@@ -279,8 +279,9 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 *(Lưu ý: Vì Mobile sử dụng chung hệ thống API với bản Web, các biến đầu vào ở tầng Domain Testing sẽ kế thừa từ bản Web nhưng được mô tả dưới góc độ ứng dụng Mobile)*
 
 ### 1. Input Variables
+> Lúc bắt đầu AI đã không có giao diện nên đã ghi theo spec đó là có nút +,- để tăng giảm quantity nhưng sau đó em đã cung cấp giao diện và AI đã sửa.
 
 | Biến | Nguồn (Mobile) | Ràng buộc theo spec | Ghi chú (nếu phải tự suy luận) |
 |---|---|---|---|
 | `id` | Path param (`GET /api/products/:id` khi mở màn hình chi tiết trên app) | Không có ràng buộc tường minh | (Suy luận) ID là số nguyên dương, thường được truyền ngầm từ màn hình danh sách sang. |
-| `quantity` | Tham số API `POST /api/cart` (Tương tác qua ô nhập / bàn phím số ảo / nút tăng giảm) | Số nguyên dương, tối thiểu là 1 | (Suy luận) Spec không nêu giới hạn Max. Cần giới hạn để tránh tràn số. |
+| `quantity` | Ô nhập liệu Text Input (bàn phím số ảo) | Số nguyên dương, tối thiểu là 1 | **(Từ UI thực tế):** Hoàn toàn không có nút chặn +/-. Người dùng gõ trực tiếp qua bàn phím ảo nên rủi ro nhập ký tự lạ, số thập phân, số âm là rất cao. |
