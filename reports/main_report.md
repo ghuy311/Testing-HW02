@@ -308,3 +308,27 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 | Chữ cái / Ký tự đặc biệt | Nhập sai bằng bàn phím chữ cái | "abc" | Invalid | "số nguyên dương" |
 | Trống / Khoảng trắng | Xóa sạch ô nhập liệu | "" | Invalid | (Suy luận) Phải có số lượng cụ thể để POST lên giỏ hàng |
 | Vượt giới hạn Max | Bấm giữ một phím số quá lâu | 9999999999 | Invalid | (Suy luận) Spec không quy định Max, nhưng ô text input có thể chứa số rất lớn gây tràn kiểu dữ liệu (Overflow) |
+
+### 3. Boundary Value Analysis
+
+**Biến `id`:**
+*(Như đã phân tích ở bản Web, ID có giới hạn Min là 1, không có Max rõ ràng)*
+
+| Test | Giá trị | Vị trí biên |
+|---|---|---|
+| Min - 1 | 0 | min - 1 (Invalid) |
+| Min | 1 | min (Valid) |
+| Min + 1 | 2 | min + 1 (Valid) |
+| Max (Suy luận) | 2147483647 | (Suy luận) Giới hạn số nguyên 32-bit |
+| Max + 1 | 2147483648 | (Suy luận) Vượt giới hạn số nguyên |
+
+**Biến `quantity` (Góc độ UI Mobile):**
+*(Với Text input tự do không bị giới hạn maxlength trên UI, người dùng có thể dán (paste) hoặc giữ phím số tạo ra dãy số khổng lồ, nên việc test cận Max của hệ thống lưu trữ là bắt buộc)*
+
+| Test | Giá trị | Vị trí biên |
+|---|---|---|
+| Min - 1 | 0 | min - 1 (Invalid) |
+| Min | 1 | min (Valid) |
+| Min + 1 | 2 | min + 1 (Valid) |
+| Max (Spec gap) | 2147483647 | (Suy luận) Tràn kiểu số nguyên 32-bit |
+| Max + 1 | 2147483648 | (Suy luận) Vượt giới hạn INT32 |
