@@ -285,3 +285,26 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 |---|---|---|---|
 | `id` | Path param (`GET /api/products/:id` khi mở màn hình chi tiết trên app) | Không có ràng buộc tường minh | (Suy luận) ID là số nguyên dương, thường được truyền ngầm từ màn hình danh sách sang. |
 | `quantity` | Ô nhập liệu Text Input (bàn phím số ảo) | Số nguyên dương, tối thiểu là 1 | **(Từ UI thực tế):** Hoàn toàn không có nút chặn +/-. Người dùng gõ trực tiếp qua bàn phím ảo nên rủi ro nhập ký tự lạ, số thập phân, số âm là rất cao. |
+
+### 2. Equivalence Partitioning
+
+**Biến `id`:**
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| ID hợp lệ | Số nguyên dương, có trong DB | 1 | Valid | Trả về thông tin chi tiết sản phẩm tương ứng |
+| ID không tồn tại | Số nguyên dương nhưng không có trong DB | 99999 | Invalid | (Suy luận) Do deep-link hoặc cache cũ, app truyền lên ID đã bị xóa (404) |
+| ID sai định dạng | Truyền chuỗi không phải số | "abc" | Invalid | (Suy luận) ID phải là số |
+
+**Biến `quantity` (Góc độ UI Mobile):**
+*(Nhấn mạnh: Vì nhập liệu qua bàn phím ảo không có cơ chế chặn bằng nút, các lớp tương đương nhắm mạnh vào sai sót định dạng nhập liệu)*
+
+| Lớp | Mô tả | Giá trị đại diện | Loại | Căn cứ từ spec |
+|---|---|---|---|---|
+| Số nguyên dương >= 1 | Giá trị số hợp lệ theo spec | 2 | Valid | "số nguyên dương, tối thiểu là 1" |
+| Số 0 | Nhập đúng số 0 | 0 | Invalid | "tối thiểu là 1" |
+| Số âm | Bàn phím ảo có gõ dấu trừ (-) | -5 | Invalid | "số nguyên dương" |
+| Số thập phân | Bàn phím ảo có gõ dấu chấm/phẩy | 1.5 | Invalid | "số nguyên" |
+| Chữ cái / Ký tự đặc biệt | Nhập sai bằng bàn phím chữ cái | "abc" | Invalid | "số nguyên dương" |
+| Trống / Khoảng trắng | Xóa sạch ô nhập liệu | "" | Invalid | (Suy luận) Phải có số lượng cụ thể để POST lên giỏ hàng |
+| Vượt giới hạn Max | Bấm giữ một phím số quá lâu | 9999999999 | Invalid | (Suy luận) Spec không quy định Max, nhưng ô text input có thể chứa số rất lớn gây tràn kiểu dữ liệu (Overflow) |
