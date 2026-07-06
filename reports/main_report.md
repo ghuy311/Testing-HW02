@@ -273,3 +273,14 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 | **TC_14_FUNC_02** | Ô nhập "Tên danh mục mới" + nút "Thêm mới" | Gõ "   ", bấm "Thêm mới" | Bị từ chối tương tự trường hợp rỗng.<br>*(Căn cứ suy luận: Khoảng trắng tương đương rỗng)* | Tạo thành công — dòng #12, #13 | **Failed*** |
 | **TC_14_FUNC_03** | Bảng danh sách danh mục | Tạo danh mục tên rất dài, quan sát hiển thị | Spec không quy định cách UI xử lý chuỗi dài.<br>*(Không có trong spec — hệ quả của spec gap Max Length)* | Chuỗi tràn ra ngoài, không wrap/truncate — dòng #5, #9, #10, #11 | **Ghi nhận** (không chấm Pass/Fail) |
 | **TC_14_FUNC_04** | Bảng danh mục (Khi có 1 dòng có tên danh mục quá dài) | Tìm nút Xóa cho từng dòng | Phải có cách để Admin xóa qua giao diện.<br>*(Căn cứ FR-14: "Admin có thể ... Xóa danh mục.")* | Không có cột/nút thao tác nào | **Failed** |
+
+## FR-06: Xem chi tiết sản phẩm (Giao diện Mobile)
+
+*(Lưu ý: Vì Mobile sử dụng chung hệ thống API với bản Web, các biến đầu vào ở tầng Domain Testing sẽ kế thừa từ bản Web nhưng được mô tả dưới góc độ ứng dụng Mobile)*
+
+### 1. Input Variables
+
+| Biến | Nguồn (Mobile) | Ràng buộc theo spec | Ghi chú (nếu phải tự suy luận) |
+|---|---|---|---|
+| `id` | Path param (`GET /api/products/:id` khi mở màn hình chi tiết trên app) | Không có ràng buộc tường minh | (Suy luận) ID là số nguyên dương, thường được truyền ngầm từ màn hình danh sách sang. |
+| `quantity` | Tham số API `POST /api/cart` (Tương tác qua ô nhập / bàn phím số ảo / nút tăng giảm) | Số nguyên dương, tối thiểu là 1 | (Suy luận) Spec không nêu giới hạn Max. Cần giới hạn để tránh tràn số. |
