@@ -28,3 +28,11 @@
 | BUG-14-03 | Tài khoản role "user" vẫn Thêm/Sửa/Xóa được danh mục — Broken Access Control | TC-FR14-01, TC-FR14-10, TC-FR14-15 | [14](<https://github.com/ghuy311/Testing-HW02/issues/14>) |
 | ISSUE-14-04 | Mã lỗi không nhất quán: token thiếu → 401, token sai định dạng → 403 (không phải vi phạm spec tường minh) | TC-FR14-03, TC-FR14-12, TC-FR14-17 | [15](<https://github.com/ghuy311/Testing-HW02/issues/15>) |
 | BUG-14-05 | PUT/DELETE trên ID không tồn tại/không hợp lệ vẫn báo phản hồi "thành công" | TC-FR14-14, TC-FR14-19, TC-FR14-20 | [16](<https://github.com/ghuy311/Testing-HW02/issues/16>) |
+
+## FR-06 (Mobile): Xem chi tiết sản phẩm
+
+| Bug ID | Mô tả ngắn gọn | Test Case liên quan | GitHub Issue |
+|---|---|---|---|
+| BUG-06-MOB-01 | Nút "Thêm vào giỏ hàng" không gọi `POST /api/cart` (xác minh qua cả React Native DevTools và Debug Remote JS) — hệ quả: mọi giá trị `quantity` (kể cả invalid) đều "thành công" vì không qua validate | TC_06_MOB_FUNC_01, TC_06_MOB_FUNC_03, TC-FR06-MOB-04, 05, 06, 07, 08, 10 | [#<số>](<link>) |
+| BUG-06-MOB-02 | `GET /api/products/:id` trả về rỗng khi `id=99999` (ID không tồn tại) | TC-FR06-MOB-02 | [#<số>](<link>) |
+| BUG-06-MOB-03 | Giao diện chi tiết sản phẩm che khuất icon trạng thái (giờ, pin, wifi) ở góc trên màn hình | TC_06_MOB_FUNC_02 | [#<số>](<link>) |
