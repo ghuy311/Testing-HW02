@@ -274,6 +274,20 @@ Không áp dụng BVA vì đây là chuỗi, không phải miền giá trị có
 | **TC_14_FUNC_03** | Bảng danh sách danh mục | Tạo danh mục tên rất dài, quan sát hiển thị | Spec không quy định cách UI xử lý chuỗi dài.<br>*(Không có trong spec — hệ quả của spec gap Max Length)* | Chuỗi tràn ra ngoài, không wrap/truncate — dòng #5, #9, #10, #11 | **Ghi nhận** (không chấm Pass/Fail) |
 | **TC_14_FUNC_04** | Bảng danh mục (Khi có 1 dòng có tên danh mục quá dài) | Tìm nút Xóa cho từng dòng | Phải có cách để Admin xóa qua giao diện.<br>*(Căn cứ FR-14: "Admin có thể ... Xóa danh mục.")* | Không có cột/nút thao tác nào | **Failed** |
 
+### 6. AI Gap Analysis
+
+1. **AI tự bịa mã HTTP status không có căn cứ:** AI đề xuất Expected Result là "201 Created" cho các thao tác tạo mới, dù `api_specification.md` không hề quy định mã HTTP cụ thể. Đây là suy luận theo quy ước REST chuẩn, không phải yêu cầu thật — nếu không kiểm tra lại, dễ đánh giá nhầm hệ thống là lỗi trong khi thực chất vẫn hoạt động đúng (chỉ khác convention).
+
+2. **AI không tự phát hiện thiếu UI cho Update:** AI chỉ thiết kế test case dựa trên `api_specification.md` (có endpoint PUT), nhưng không kiểm tra được rằng giao diện Admin thực tế **chỉ có Create/Read/Delete**, thiếu hẳn nút Sửa. Đây là giới hạn cố hữu — AI không có khả năng tự mở trình duyệt để đối chiếu.
+
+3. **AI không tự nhận ra lỗ hổng RBAC nghiêm trọng:** Dù đã thiết kế đúng EC "Token User → phải bị từ chối", AI không thể tự thực thi để biết rằng hệ thống thực tế **cho phép User thường Create/Update/Delete category** — đây là lỗ hổng bảo mật chỉ lộ ra qua thực nghiệm thật, không thể suy luận từ spec.
+
+4. **Business spec và API spec không khớp nhau (Update):** `eshop-spec.md` chỉ mô tả "Thêm/Xem/Xóa", không nhắc "Sửa", nhưng `api_specification.md` lại có `PUT /api/categories/:id`. AI không tự phát hiện được sự không nhất quán này cho đến khi con người đối chiếu cả 2 tài liệu song song.
+
+### 7. AI Critique
+
+AI hỗ trợ tốt trong việc thiết kế EC/BVA chuẩn cho Token, `name`, và `id`, đồng thời biết gắn nhãn "spec gap" hợp lý cho các trường hợp thiếu ràng buộc (Max Length của `name`, Max của `id`). Tuy nhiên, sai sót lớn nhất là AI đề xuất mã HTTP status (201, 404, 403...) như thể đó là yêu cầu spec tường minh, trong khi thực chất là suy luận theo quy ước REST — nếu không phân biệt rõ, dễ đánh giá nhầm hệ thống là lỗi dù nó vẫn xử lý đúng logic nghiệp vụ, chỉ khác convention mã trạng thái. Nguyên nhân là AI có xu hướng trộn lẫn "chuẩn thực hành tốt" với "yêu cầu bắt buộc từ spec" khi trình bày Expected Result, khiến ranh giới giữa 2 loại này bị mờ nếu không có ghi chú tách bạch. Bài học quan trọng nhất: khi Actual khác Expected chỉ ở mã HTTP nhưng response vẫn thể hiện đúng ý nghĩa nghiệp vụ (thành công có message, có ID), cần đánh giá lại bản chất trước khi kết luận Failed — không phải mọi sai lệch số liệu đều là bug. Ngoài ra, những lỗ hổng nghiêm trọng nhất (RBAC không hoạt động, thiếu UI Update/Delete) đều chỉ lộ ra khi con người tự thực thi, khẳng định lại nguyên tắc "Human review" là bắt buộc, không thể thay thế bằng thiết kế lý thuyết của AI.
+
 ## FR-06: Xem chi tiết sản phẩm (Giao diện Mobile)
 
 *(Lưu ý: Vì Mobile sử dụng chung hệ thống API với bản Web, các biến đầu vào ở tầng Domain Testing sẽ kế thừa từ bản Web nhưng được mô tả dưới góc độ ứng dụng Mobile)*
