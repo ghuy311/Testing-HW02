@@ -346,3 +346,27 @@ AI hỗ trợ tốt trong việc thiết kế EC/BVA chuẩn cho Token, `name`, 
 | Min + 1 | 2 | min + 1 (Valid) |
 | Max (Spec gap) | 2147483647 | (Suy luận) Tràn kiểu số nguyên 32-bit |
 | Max + 1 | 2147483648 | (Suy luận) Vượt giới hạn INT32 |
+
+### 4. Test Case Table (Góc độ Mobile UI)
+> trên Mobile không hề gọi POST /api/cart (giống bản Web), nên Actual = "Thêm vào giỏ hàng thành công" xảy ra với MỌI giá trị quantity, kể cả 0, -5, 1.5, "abc" — không phải vì có 7 lỗi validation khác nhau, mà vì không có bất kỳ validation nào chạy cả. Đây là **1 nguyên nhân gốc duy nhất**, không phải 7 lỗi validation riêng biệt — không tạo GitHub Issue riêng cho từng test case, chỉ cần 1 Issue cross-platform .
+
+| Test ID | API | Input (Mô phỏng thao tác từ Mobile) | Expected Result (theo spec / suy luận) | Actual | Pass/Fail |
+|---|---|---|---|---|---|
+| TC-FR06-MOB-01 | `GET /api/products/:id` | `id=1` (ID hợp lệ, Min) | Mở màn hình chi tiết sản phẩm thành công |Thấy chi tiết sản phẩm |Passed |
+| TC-FR06-MOB-02 | `GET /api/products/:id` | `id=99999` (ID đã bị xóa / do cache cũ) | Báo lỗi 404 (Không tìm thấy sản phẩm) |Trả về rỗng|Failed |
+| TC-FR06-MOB-03 | `POST /api/cart` | `quantity=1` (Gõ số 1 - Biên Min) | Thêm vào giỏ hàng thành công |Thêm vào giỏ hàng thành công | Passed |
+| TC-FR06-MOB-04 | `POST /api/cart` | `quantity=0` (Gõ số 0 - Dưới Min) | Lỗi Validation: Số lượng tối thiểu là 1 |Thêm vào giỏ hàng thành công | Failed |
+| TC-FR06-MOB-05 | `POST /api/cart` | `quantity=-5` (Bàn phím gõ dấu trừ và số) | Lỗi Validation: Chỉ chấp nhận số nguyên dương |Thêm vào giỏ hàng thành công |Failed |
+| TC-FR06-MOB-06 | `POST /api/cart` | `quantity=1.5` (Bàn phím gõ dấu thập phân) | Lỗi Validation: Chỉ chấp nhận số nguyên |Thêm vào giỏ hàng thành công |Failed |
+| TC-FR06-MOB-07 | `POST /api/cart` | `quantity="abc"` (bàn phím không cho nhập abc tuy nhiên vẫn có thể copy chuỗi) | Lỗi Validation: Sai kiểu dữ liệu |Thêm vào giỏ hàng thành công |Faield |
+| TC-FR06-MOB-08 | `POST /api/cart` | `quantity=""` (Xóa hoàn toàn input, để trống) | Lỗi Validation: Bắt buộc phải có số lượng |Thêm vào giỏ hàng thành công |Faield |
+| TC-FR06-MOB-09 | `POST /api/cart` | `quantity=2147483647` (Giữ phím tới sát mức Max) | Thêm thành công (trên lý thuyết Backend) |Thêm vào giỏ hàng thành công |Passed |
+| TC-FR06-MOB-10 | `POST /api/cart` | `quantity=2147483648` (Vượt mức chịu đựng hệ thống) | Trả về lỗi validation rõ ràng, không làm sập server |Thêm vào giỏ hàng thành công |Failed |
+
+### 5. Functional/Event-based Testing (Mobile)
+
+| Test ID | Đối tượng | Hành động | Expected Result | Actual | Pass/Fail |
+|---|---|---|---|---|---|
+| TC_06_MOB_FUNC_01 | Nút "Thêm vào giỏ hàng" | Nhập quantity hợp lệ, bấm nút, xác minh qua React Native Devtools  | UI cập nhật giỏ hàng VÀ gọi `POST /api/cart` | UI cập nhật badge giỏ hàng nhưng KHÔNG gọi API nào | Failed (BUG-06-MOB-01) |
+| TC_06_MOB_FUNC_02 | Giao diện xem chi tiết sản phẩm |  | Giao diện không chiếm toàn màn hình  | Giao diện che các icon trên điện thoại ở góc trên | Failed |
+
